@@ -15,4 +15,5 @@ class Employer(Base):
     gstin = Column(String)
     hiring_mode = Column(String, default='MANUAL')
     is_verified = Column(Boolean, default=False)
+    business_document_url = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -77,3 +77,20 @@ async def upload_worker_id(session: AsyncSession, worker: Worker, file: UploadFi
     await session.refresh(worker)
     
     return worker
+
+async def verify_worker_liveness(session: AsyncSession, worker: Worker, file: UploadFile) -> Worker:
+    if not worker.kyc_document_url:
+        raise HTTPException(status_code=400, detail="Must upload ID before liveness check.")
+    worker.is_verified = True
+    session.add(worker)
+    await session.commit()
+    return worker
+
+async def verify_employer_business(session: AsyncSession, employer: Employer, file: UploadFile, gstin: str = None) -> Employer:
+    if gstin:
+        employer.gstin = gstin
+    employer.business_document_url = f"https://goleska-mock-s3.com/business/{employer.id}/{file.filename}"
+    employer.is_verified = True
+    session.add(employer)
+    await session.commit()
+    return employer
