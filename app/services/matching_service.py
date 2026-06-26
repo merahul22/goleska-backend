@@ -16,36 +16,27 @@ async def find_candidates_for_job(session: AsyncSession, job_id: str, initial_ra
     
     job, job_site = row
     target_count = job.headcount_required * 3
-    current_radius = initial_radius
-    matched_workers = []
     
-    while current_radius <= max_radius:
-        distance = func.ST_DistanceSphere(Worker.current_location, job_site.location)
-        score_expr = (
-            (1.0 - (distance / current_radius)) * 0.5 +
-            (Worker.overall_rating / 5.0) * 0.3 +
-            (func.least(Worker.total_jobs, 50) / 50.0) * 0.2
-        )
+    distance = func.ST_DistanceSphere(Worker.current_location, job_site.location)
+    score_expr = (
+        (1.0 - (distance / max_radius)) * 0.5 +
+        (Worker.overall_rating / 5.0) * 0.3 +
+        (func.least(Worker.total_jobs, 50) / 50.0) * 0.2
+    )
 
-        stmt = (
-            select(Worker, score_expr.label("composite_score"))
-            .where(
-                func.ST_DistanceSphere(Worker.current_location, job_site.location) <= current_radius,
-                Worker.is_available == True,
-                Worker.is_verified == True
-            )
-            .order_by(score_expr.desc())
-            .limit(target_count)
+    stmt = (
+        select(Worker, score_expr.label("composite_score"))
+        .where(
+            func.ST_DistanceSphere(Worker.current_location, job_site.location) <= max_radius,
+            Worker.is_available == True,
+            Worker.is_verified == True
         )
-        
-        workers_res = await session.execute(stmt)
-        matched_workers = list(workers_res)
-        
-        if len(matched_workers) >= target_count:
-            break
-            
-        current_radius += 10000
-
+        .order_by(score_expr.desc())
+        .limit(target_count)
+    )
+    
+    workers_res = await session.execute(stmt)
+    
     matches = [
         JobMatch(
             job_id=job.id,
@@ -53,7 +44,7 @@ async def find_candidates_for_job(session: AsyncSession, job_id: str, initial_ra
             composite_score=score,
             expires_at=datetime.utcnow() + timedelta(minutes=2)
         )
-        for worker, score in matched_workers
+        for worker, score in workers_res
     ]
         
     if matches:
