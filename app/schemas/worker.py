@@ -15,6 +15,10 @@ class WorkerBase(BaseModel):
 class WorkerCreate(WorkerBase):
     pass
 
+class WorkerRegistrationCombined(WorkerCreate):
+    latitude: float
+    longitude: float
+
 class WorkerLocationUpdate(BaseModel):
     latitude: float
     longitude: float
