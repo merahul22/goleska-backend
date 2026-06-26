@@ -3,3 +3,4 @@ from .worker import WorkerBase, WorkerCreate, WorkerRegistrationCombined, Worker
 from .job_site import JobSiteBase, JobSiteCreate, JobSiteResponse
 from .job import JobBase, JobCreate, JobResponse
 from .job_match import JobMatchBase, JobMatchCreate, JobMatchResponse
+from .auth import OTPRequest, OTPVerify, TokenResponse

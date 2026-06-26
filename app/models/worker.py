@@ -14,6 +14,8 @@ class Worker(Base):
     name = Column(String)
     aadhaar_number = Column(String, unique=True)
     is_available = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    kyc_document_url = Column(String)
     current_location = Column(Geometry(geometry_type='POINT', srid=4326))
     expected_salary = Column(Numeric)
     overall_rating = Column(Numeric, default=5.0)
