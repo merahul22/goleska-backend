@@ -11,7 +11,6 @@ class JobBase(BaseModel):
     min_experience: Optional[int] = None
 
 class JobCreate(JobBase):
-    employer_id: UUID4
     job_site_id: UUID4
 
 class JobResponse(JobBase):
