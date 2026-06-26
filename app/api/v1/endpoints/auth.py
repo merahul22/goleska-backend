@@ -4,7 +4,7 @@ from app.core.database import get_db_session
 from app.api.deps import get_current_worker
 from app.models.worker import Worker
 from app.schemas.auth import OTPRequest, OTPVerify, TokenResponse
-from app.services.auth_service import auth_service
+from app.services.auth_service import send_otp as do_send_otp, verify_otp as do_verify_otp, upload_worker_id as do_upload_worker_id
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ async def verify_otp(
     """
     Verifies the OTP and returns a JWT token.
     """
-    return await auth_service.verify_otp(session, request.phone, request.code)
+    return await do_verify_otp(session, request.phone, request.code)
 
 
 @router.post("/worker/upload-id")
@@ -28,7 +28,7 @@ async def upload_worker_id(
     """
     Uploads an Aadhaar/Gov ID for the worker. Requires a valid JWT.
     """
-    updated_worker = await auth_service.upload_worker_id(session, current_worker, file)
+    updated_worker = await do_upload_worker_id(session, current_worker, file)
     return {
         "message": "ID uploaded successfully. KYC verification pending.",
         "kyc_document_url": updated_worker.kyc_document_url
@@ -40,5 +40,5 @@ async def send_otp(request: OTPRequest):
     """
     Initiates phone number verification by sending an OTP.
     """
-    await auth_service.send_otp(request.phone)
+    await do_send_otp(request.phone)
     return {"message": "OTP sent successfully"}
