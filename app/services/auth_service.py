@@ -3,7 +3,7 @@ import logging
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from app.core.config import settings
 from app.models.worker import Worker
 from app.models.employer import Employer
@@ -67,5 +67,24 @@ class AuthService:
             
         # If neither exists, they haven't registered
         raise HTTPException(status_code=404, detail="Phone number not registered. Please register first.")
+
+    async def upload_worker_id(self, session: AsyncSession, worker: Worker, file: UploadFile) -> Worker:
+        """
+        Mocks uploading the Gov ID to an S3 bucket and triggers async KYC.
+        """
+        # Mock S3 Upload
+        mock_s3_url = f"https://goleska-mock-s3.com/kyc/{worker.id}/{file.filename}"
+        print("="*40)
+        print(f"📁 MOCK S3 UPLOAD 📁")
+        print(f"Uploading {file.filename} to {mock_s3_url}")
+        print("="*40)
+        
+        # Update Worker Record
+        worker.kyc_document_url = mock_s3_url
+        session.add(worker)
+        await session.commit()
+        await session.refresh(worker)
+        
+        return worker
 
 auth_service = AuthService()
