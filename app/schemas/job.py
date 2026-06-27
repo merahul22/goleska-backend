@@ -22,3 +22,7 @@ class JobResponse(JobBase):
 
     class Config:
         from_attributes = True
+
+class JobCreateNLP(BaseModel):
+    job_site_id: UUID4
+    prompt: str
