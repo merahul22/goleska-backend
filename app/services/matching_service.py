@@ -7,7 +7,6 @@ from app.models.job_site import JobSite
 from app.models.worker import Worker
 from app.models.job_match import JobMatch
 from datetime import datetime, timedelta
-from app.services.auth_service import redis_client
 
 async def find_candidates_for_job(session: AsyncSession, job_id: str, initial_radius: int = 10000, max_radius: int = 30000):
     result = await session.execute(
@@ -53,15 +52,5 @@ async def find_candidates_for_job(session: AsyncSession, job_id: str, initial_ra
     if matches:
         session.add_all(matches)
         await session.commit()
-        
-        # Publish matches to Redis Pub/Sub for WebSockets
-        for worker, score in workers_list:
-            payload = {
-                "worker_id": str(worker.id),
-                "job_id": str(job.id),
-                "title": job.title,
-                "score": float(score)
-            }
-            await redis_client.publish("job_dispatch", json.dumps(payload))
     
     return matches
