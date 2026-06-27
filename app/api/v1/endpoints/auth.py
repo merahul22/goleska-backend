@@ -5,7 +5,13 @@ from app.api.deps import get_current_worker, get_current_employer
 from app.models.worker import Worker
 from app.models.employer import Employer
 from app.schemas.auth import TokenResponse
-from app.services.auth_service import upload_worker_id as do_upload_worker_id, verify_worker_liveness as do_verify_worker_liveness, verify_employer_business as do_verify_employer_business
+from app.services.auth_service import (
+    upload_worker_id as do_upload_worker_id, 
+    verify_worker_liveness as do_verify_worker_liveness, 
+    verify_employer_business as do_verify_employer_business,
+    get_worker_id_url,
+    get_employer_business_url
+)
 
 router = APIRouter()
 
@@ -33,6 +39,16 @@ async def upload_worker_id(
         "kyc_document_url": updated_worker.kyc_document_url
     }
 
+@router.get("/worker/id-url")
+async def fetch_worker_id_url(
+    current_worker: Worker = Depends(get_current_worker)
+):
+    """Returns a short-lived signed URL to view the uploaded ID."""
+    url = await get_worker_id_url(current_worker)
+    if not url:
+        raise HTTPException(status_code=404, detail="No ID uploaded yet.")
+    return {"signed_url": url}
+
 @router.post("/worker/liveness")
 async def verify_worker_liveness(
     file: UploadFile = File(...),
@@ -55,4 +71,12 @@ async def verify_employer_business(
     return {"message": "Business verification submitted and approved."}
 
 
-
+@router.get("/employer/business-url")
+async def fetch_employer_business_url(
+    current_employer: Employer = Depends(get_current_employer)
+):
+    """Returns a short-lived signed URL to view the business document."""
+    url = await get_employer_business_url(current_employer)
+    if not url:
+        raise HTTPException(status_code=404, detail="No document uploaded yet.")
+    return {"signed_url": url}

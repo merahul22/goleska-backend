@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # Supabase Settings
     SUPABASE_URL: str
     SUPABASE_KEY: str
+    SUPABASE_SERVICE_ROLE_KEY: str
     SUPABASE_JWT_SECRET: str
 
     class Config:
