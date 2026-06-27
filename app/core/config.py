@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     # LLM Settings
     GROQ_API_KEY: str
 
+    # Supabase Settings
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
+
     class Config:
         env_file = ".env"
 
