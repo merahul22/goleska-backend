@@ -8,9 +8,10 @@ class Employer(Base):
     __tablename__ = 'employers'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    supabase_auth_id = Column(String, unique=True, index=True, nullable=True)
     company_name = Column(String, nullable=False)
     contact_name = Column(String)
-    email = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
     phone = Column(String, unique=True, nullable=False)
     gstin = Column(String)
     hiring_mode = Column(String, default='MANUAL')

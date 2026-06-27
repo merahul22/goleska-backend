@@ -8,17 +8,21 @@ from app.schemas.worker import WorkerRegistrationCombined
 
 class WorkerService:
     @staticmethod
-    async def create_worker(session: AsyncSession, worker_in: WorkerRegistrationCombined) -> Worker:
+    async def create_worker(session: AsyncSession, worker_in: WorkerRegistrationCombined, supabase_auth_id: str = None) -> Worker:
         # Check for uniqueness on phone or aadhaar
         filters = [Worker.phone == worker_in.phone]
         if worker_in.aadhaar_number:
             filters.append(Worker.aadhaar_number == worker_in.aadhaar_number)
+        if supabase_auth_id:
+            filters.append(Worker.supabase_auth_id == supabase_auth_id)
             
         stmt = select(Worker).where(or_(*filters))
         result = await session.execute(stmt)
         existing_worker = result.scalars().first()
 
         if existing_worker:
+            if supabase_auth_id and existing_worker.supabase_auth_id == supabase_auth_id:
+                raise HTTPException(status_code=400, detail="User already registered")
             if existing_worker.phone == worker_in.phone:
                 raise HTTPException(status_code=400, detail="Phone number already registered")
             if worker_in.aadhaar_number and existing_worker.aadhaar_number == worker_in.aadhaar_number:
@@ -31,6 +35,7 @@ class WorkerService:
 
         # Map Pydantic schema to SQLAlchemy model
         new_worker = Worker(
+            supabase_auth_id=supabase_auth_id,
             phone=worker_in.phone,
             email=worker_in.email,
             name=worker_in.name,

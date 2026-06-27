@@ -4,20 +4,18 @@ from app.core.database import get_db_session
 from app.api.deps import get_current_worker, get_current_employer
 from app.models.worker import Worker
 from app.models.employer import Employer
-from app.schemas.auth import OTPRequest, OTPVerify, TokenResponse
-from app.services.auth_service import send_otp as do_send_otp, verify_otp as do_verify_otp, upload_worker_id as do_upload_worker_id, verify_worker_liveness as do_verify_worker_liveness, verify_employer_business as do_verify_employer_business
+from app.schemas.auth import TokenResponse
+from app.services.auth_service import upload_worker_id as do_upload_worker_id, verify_worker_liveness as do_verify_worker_liveness, verify_employer_business as do_verify_employer_business
 
 router = APIRouter()
 
-@router.post("/verify-otp", response_model=TokenResponse)
-async def verify_otp(
-    request: OTPVerify,
-    session: AsyncSession = Depends(get_db_session)
-):
+@router.get("/status")
+async def auth_status():
     """
-    Verifies the OTP and returns a JWT token.
+    Check Auth configuration.
+    Note: OTP generation and verification are now handled directly by the Supabase client.
     """
-    return await do_verify_otp(session, request.phone, request.code)
+    return {"status": "Supabase Auth Active"}
 
 
 @router.post("/worker/upload-id")
@@ -57,10 +55,4 @@ async def verify_employer_business(
     return {"message": "Business verification submitted and approved."}
 
 
-@router.post("/send-otp", status_code=status.HTTP_200_OK)
-async def send_otp(request: OTPRequest):
-    """
-    Initiates phone number verification by sending an OTP.
-    """
-    await do_send_otp(request.phone)
-    return {"message": "OTP sent successfully"}
+

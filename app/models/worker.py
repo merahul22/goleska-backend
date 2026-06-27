@@ -9,8 +9,9 @@ class Worker(Base):
     __tablename__ = 'workers'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    phone = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True)
+    supabase_auth_id = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
     name = Column(String)
     aadhaar_number = Column(String, unique=True)
     is_available = Column(Boolean, default=True)
