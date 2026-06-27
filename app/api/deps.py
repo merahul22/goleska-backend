@@ -11,14 +11,25 @@ from app.models.employer import Employer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/verify-otp")
 
+import httpx
+
 def get_supabase_jwt_payload(token: str = Depends(oauth2_scheme)) -> dict:
+    url = f"{settings.SUPABASE_URL}/auth/v1/user"
     try:
-        payload = jwt.decode(
-            token, settings.SUPABASE_JWT_SECRET, algorithms=["HS256"], audience="authenticated"
-        )
-        return payload
-    except (jwt.PyJWTError, ValidationError) as e:
-        print("JWT Error:", e)
+        response = httpx.get(url, headers={
+            "Authorization": f"Bearer {token}",
+            "apikey": settings.SUPABASE_KEY
+        })
+        if response.status_code != 200:
+            raise ValueError("Token rejected by Supabase")
+        
+        user_data = response.json()
+        return {
+            "sub": user_data.get("id"),
+            "phone": user_data.get("phone")
+        }
+    except Exception as e:
+        print("Auth Error:", e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -41,9 +52,15 @@ async def get_current_worker(
     if not worker:
         phone = payload.get("phone")
         if phone:
-            if not phone.startswith("+"):
-                phone = "+" + phone
-            stmt = select(Worker).where(Worker.phone == phone)
+            clean_phone = phone.replace("+", "")
+            possible_phones = [
+                phone, 
+                f"+{clean_phone}", 
+                clean_phone, 
+                f"+91{clean_phone[-10:]}" if len(clean_phone) >= 10 else phone,
+                clean_phone[-10:] if len(clean_phone) >= 10 else phone
+            ]
+            stmt = select(Worker).where(Worker.phone.in_(possible_phones))
             worker = (await session.execute(stmt)).scalars().first()
             if worker:
                 worker.supabase_auth_id = supabase_auth_id
@@ -70,9 +87,15 @@ async def get_current_employer(
     if not employer:
         phone = payload.get("phone")
         if phone:
-            if not phone.startswith("+"):
-                phone = "+" + phone
-            stmt = select(Employer).where(Employer.phone == phone)
+            clean_phone = phone.replace("+", "")
+            possible_phones = [
+                phone, 
+                f"+{clean_phone}", 
+                clean_phone, 
+                f"+91{clean_phone[-10:]}" if len(clean_phone) >= 10 else phone,
+                clean_phone[-10:] if len(clean_phone) >= 10 else phone
+            ]
+            stmt = select(Employer).where(Employer.phone.in_(possible_phones))
             employer = (await session.execute(stmt)).scalars().first()
             if employer:
                 employer.supabase_auth_id = supabase_auth_id

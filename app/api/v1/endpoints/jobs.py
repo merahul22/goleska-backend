@@ -40,11 +40,6 @@ async def create_job(
         "matches_found": len(matches)
     }
 
-        "message": "Job created. Matching engine completed.", 
-        "job_id": job.id, 
-        "matches_found": len(matches)
-    }
-
 @router.post("/{job_id}/accept")
 async def accept_job(
     job_id: str,
