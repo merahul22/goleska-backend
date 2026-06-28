@@ -5,10 +5,18 @@ from datetime import datetime
 from decimal import Decimal
 
 class WorkerBase(BaseModel):
+    account_type: Optional[str] = "EMPLOYEE"
     phone: str
+    alternate_phone: Optional[str] = None
     email: Optional[EmailStr] = None
     name: Optional[str] = None
     aadhaar_number: Optional[str] = None
+    
+    permanent_address: Optional[dict] = None
+    current_address: Optional[dict] = None
+    blood_group: Optional[str] = None
+    kyc_document_url: Optional[str] = None
+    
     is_available: bool = True
     expected_salary: Optional[Decimal] = None
 
