@@ -2,7 +2,7 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import employers, workers, auth, jobs, kyc
+from app.api.v1.endpoints import employers, workers, auth, jobs, kyc, job_sites
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -27,6 +27,7 @@ app.include_router(kyc.router, prefix="/api/v1/kyc", tags=["KYC Simulation"])
 app.include_router(employers.router, prefix="/api/v1/employers", tags=["Employers"])
 app.include_router(workers.router, prefix="/api/v1/workers", tags=["Workers"])
 app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
+app.include_router(job_sites.router, prefix="/api/v1/job-sites", tags=["Job Sites"])
 
 @app.get("/health")
 async def health_check():
